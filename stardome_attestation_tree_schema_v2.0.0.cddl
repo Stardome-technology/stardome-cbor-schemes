@@ -1,0 +1,81 @@
+; Schema for the Stardome attestation tree
+; Version 2.0.0
+; This schema defines the CBOR structure of the features of the merkle tree computed by the Stardome  module
+; as response payload to the Stardome attestation request
+
+; -----------------------------------------------------------------------------
+; 1. Source leaves data type definitions
+; -----------------------------------------------------------------------------
+; Enumeration of supported data types that can be placed in leaf nodes.
+; These data types are used in the schema definition to tell what kind of data belongs at a specific tree index hash value.
+
+leaves_type_id = &(
+  leaf_padding: 0,                  ; Empty/Zero-filled (Default)
+  leaf_installation_id: 1,          ; Installation Identifier Code 
+  leaf_xmss_pk: 2,                  ; Stardome Module XMSS^MT public key
+  leaf_epoch_hash: 3,               ; hash of the accepted Stardome Epoch
+  leaf_previous_mark_w_hash   : 4,  ; hash of the previous Stardome Mark drift window
+  leaf_mark_w: 5,                   ; the Stardome Mark drift window
+  leaf_mark_w_hash: 6,              ; hash of the Stardome Mark drift window
+  leaf_previous_att: 7,             ; hash of the previous Stardome attestation
+  leaf_counter: 8,                  ; Stardome attestation counter
+  leaf_nonce: 9,                    ; received challenge value
+  leaf_shcap_policy_id: 10,         ; identifier of the adopted Stardome Mark computation policy and the SHCAP version;
+  leaf_chain_data: 11,              ; hash linkage to another Stardome attestation (Stardome Chain of Custody)
+  leaf_timestamp: 12,               ; Source data (RTC Timestamp - ISO8601 UTC), provided by the host device
+  leaf_source: 13                   ; Source data type, provided by the host device
+)
+
+; -----------------------------------------------------------------------------
+; 2. Stardome attestation tree schema definition
+; -----------------------------------------------------------------------------
+
+stardome_attestation_tree_schema_definition = {
+  1: bstr,                         ; version: here 2.0.0 (322E302E30 as hexadecimal ASCII string)
+  2: uint,   			    	           ; tree_depth
+  3: uint,                         ; source_leaves_amt
+  4: { uint => leaves_type_id }    ; leaf_index_map
+}
+
+; where:
+;
+; `tree_depth` is defined as the tree height: the maximum number of edges on any path
+; from the root to a leaf (root = level 0). Number of levels = tree_depth + 1.
+; For a perfect/full binary tree:
+; - leaves = 2^tree_depth
+; - total nodes = 2^(tree_depth + 1) - 1
+;.
+; `source_leaves_amt` is the maximum amount of source-data leaf nodes.
+;
+; `leaf_index_map` maps an absolute tree node index (level-order) to the expected source leaves data type.
+; Absolute indices are level-order (root = 0). Leaf node indices occupy the range
+; [2^tree_depth - 1 .. 2^(tree_depth + 1) - 2]. For example, with `tree_depth = 5` the leaf node
+; absolute indices are 31..62 (so `source_leaves_amt = 32` corresponds to leaf indices 31..62).
+; Each Stardome attestation features a fixed set of leaf nodes, starting from the first leaf node,
+; followed by a dynamic set of leaf nodes with source-data type values, starting from the last fixed set’s leaf node.
+
+; -----------------------------------------------------------------------------
+; 4. Stardome attestation tree schema 
+; version 2.0.0
+; -----------------------------------------------------------------------------
+
+stardome_attestation_tree_schema = [
+  h'322E302E30',
+  5,
+  32,
+  {
+    31: 1,
+    32: 2,
+    33: 3,
+    34: 4,
+    35: 5,
+    36: 6,
+    37: 7,
+    38: 8,
+    39: 9,
+    40: 10,
+    41: 11,
+    42: 12,
+    * (uint .ge 43 .le 62) => 13
+  }
+]

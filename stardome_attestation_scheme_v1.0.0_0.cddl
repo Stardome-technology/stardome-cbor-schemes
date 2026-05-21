@@ -1,0 +1,32 @@
+; Schema for the Stardome attestation
+; Version 1.0.0_0
+; This schema defines the CBOR structure of the Stardome attestation computed by the Stardome SGE (ground) module as response to the Stardome attestation request
+
+; -----------------------------------------------------------------------------
+; 1. Stardome attestation structure
+; -----------------------------------------------------------------------------
+
+stardome_attestation = {
+  1: bstr,		    		; pk_root
+  2: bstr,				    ; merkle_root
+  3: bstr,				    ; xmss_sig
+  ? 4: [+ bstr ],			; leaf_hashes
+  ? 5: [+ bstr ],			; host_keys
+  ? 6: [+ bstr ],     ; stardome_validation_data
+}
+
+; where:
+;
+; pk_root is the Stardome module XMSS public key provided as raw bytes
+; 
+; merkle_root is the Stardome attestation tree’s Merkle Root provided as raw bytes
+;
+; xmss_sig is the XMSS Signature of the Stardome attestation tree’s Merkle Root provided as raw bytes
+;
+; leaf_hashes is an array where the values are the leaf nodes hashes, provided as raw bytes.
+; The leaf_hashes is included within the Stardome attestation according to the stardome_sign_request's leaf_hashes boolean value
+;
+; host_keys is an array where the values are the values provided within the the request's host_keys array
+
+; stardome_validation_data is an array the values are the source data used to compute the leaf nodes hashes, provided as raw bytes.
+; The stardome_validation_data are included within the Stardome attestation according to stardome_sign_request's leaf_hashes

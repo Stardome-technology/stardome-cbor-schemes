@@ -1,0 +1,16 @@
+; Payload Schema for the FLAG_STARDOME_PROOF Stardome merkle proof request computed by the Stardome SGE (ground) module
+; Version 1.0.0_0
+
+;
+; Request payload to compute a Merkle proof for a single leaf.
+; The requester provides the Merkle tree (as defined in stardome-merkle-tree.cddl)
+; and the leaf index (0-based, leaf-layer index).
+;
+; -----------------------------------------------------------------------------
+; 1. Payload structure
+; -----------------------------------------------------------------------------
+
+proof_request_payload = [
+  merkle-tree-cbor,  ; the Merkle tree to compute the proof on
+  uint              ; leaf_index (0-based in leaf layer)
+]

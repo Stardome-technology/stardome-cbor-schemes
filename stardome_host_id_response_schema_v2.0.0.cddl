@@ -1,0 +1,16 @@
+; Stardome response to the FLAG_STARDOME_ID request of computed by the Stardome module
+; Version 2.0.0
+; This describes the MCU response payload when encoding_type == ENCODING_CBOR.
+; Legacy firmware may return raw bytes (encoding_type == ENCODING_BINARY).
+;
+
+stardome_host_id_response = {
+  1: bstr,  ; fw
+  2: bstr,  ; host_id
+  3: bstr,  ; installation_id
+  4: uint,  ; response_version
+}
+
+; where
+;
+; installation_id is a 64 bytes ASCII string: SHA256(host_id) || SHA256(mcu_uid16)

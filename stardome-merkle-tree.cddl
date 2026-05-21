@@ -1,0 +1,130 @@
+; CDDL schema for Merkle Tree CBOR serialization
+; Hashes are stored as RAW BYTES (not hex-encoded)
+; Both structures use keys 1-5 but are separate CBOR objects
+
+; Versioned Merkle Tree CBOR structures
+; - `merkle-tree-v1` is the legacy standard tree (version = 1)
+; - `merkle-tree-v2` is the secure tree where `tree_depth` (key 6) is mandatory
+merkle-tree-v1 = {
+  1: 1,                         ; version == 1 (legacy)
+  2: [* bstr .size 32],         ; nodes - array of raw 32-byte hashes (CBOR_KEY_NODES)
+  3: uint .ge 15,               ; nodes_count (CBOR_KEY_NODES_COUNT)
+  4: tstr,                      ; hashalgo - algorithm name (CBOR_KEY_ALGORITHM)
+  5: uint .ge 1                 ; hash_size - typically 32 (CBOR_KEY_HASH_SIZE)
+}
+
+merkle-tree-v2 = {
+  1: uint .ge 2,                ; version >= 2 indicates secure tree
+  2: [* bstr .size 32],         ; nodes - array of raw 32-byte hashes (CBOR_KEY_NODES)
+  3: uint .ge 15,               ; nodes_count (CBOR_KEY_NODES_COUNT)
+  4: tstr,                      ; hashalgo - algorithm name (CBOR_KEY_ALGORITHM)
+  5: uint .ge 1,                ; hash_size - typically 32 (CBOR_KEY_HASH_SIZE)
+  6: uint .le 32,               ; tree_depth (CBOR_KEY_TREE_DEPTH) - MANDATORY for v2
+  ? 7: security_flags           ; security_flags (CBOR_KEY_SECURITY_FLAGS) - optional for security
+}
+
+; Unified entry: either v1 or v2
+merkle-tree-cbor = merkle-tree-v1 / merkle-tree-v2
+
+; Merkle Proof CBOR structures
+; - `merkle-proof-v1` is the legacy proof format (version = 1)
+; - `merkle-proof-v2` is the secure proof format where:
+;    - expected_depth (key 8) MUST be present
+;    - the proof MUST be a single-leaf proof (exactly one index)
+;
+; NOTE: The verifier also expects lemmas_count == expected_depth.
+
+merkle-proof-v1 = {
+  1: 1,                         ; version == 1 (legacy)
+  2: [* uint],                  ; indices array (CBOR_KEY_INDICES)
+  3: [* bstr .size 32],         ; lemmas - array of raw 32-byte hashes (CBOR_KEY_LEMMAS)
+  4: uint,                      ; indices_count (CBOR_KEY_INDICES_COUNT)
+  5: uint                       ; lemmas_count (CBOR_KEY_LEMMAS_COUNT)
+}
+
+merkle-proof-v2 = {
+  1: uint .ge 2,                ; version >= 2 indicates secure proof
+  2: [1*1 uint],                ; indices array (CBOR_KEY_INDICES) - EXACTLY ONE leaf index
+  3: [* bstr .size 32],         ; lemmas - array of raw 32-byte hashes (CBOR_KEY_LEMMAS)
+  4: 1,                         ; indices_count (CBOR_KEY_INDICES_COUNT) - must be 1
+  5: uint,                      ; lemmas_count (CBOR_KEY_LEMMAS_COUNT)
+  8: uint .le 32                ; expected_depth (CBOR_KEY_EXPECTED_DEPTH) - REQUIRED for v2+
+}
+
+; Unified entry: either v1 or v2
+merkle-proof-cbor = merkle-proof-v1 / merkle-proof-v2
+
+; Hash algorithms supported
+hash-algorithm = "sha256" / "blake2b" 
+
+; Extended tree with optional fields
+merkle-tree-extended = {
+  1: uint .default 1,           ; version
+  2: [* bstr .size 32],         ; nodes (raw bytes)
+  3: uint .ge 15,               ; nodes_count
+  4: hash-algorithm,            ; hashalgo
+  5: uint .ge 1,                ; hash_size
+  ? 6: uint .ge 8,              ; leaves_count (optional)
+  ? 7: uint,                    ; tree_depth (optional)
+  ? 8: bstr .size 32,           ; root_hash (optional, raw bytes)
+  ? 9: metadata-map             ; metadata (optional)
+}
+
+; Security configuration flags
+security_flags = {
+  1: bool,                      ; use_double_leaf_hash
+  2: bool,                      ; use_depth_prefix  
+  3: bool                       ; use_node_prefix
+}
+
+; Metadata structure
+metadata-map = {
+  ? 1: tstr,                    ; created_at (ISO 8601)
+  ? 2: tstr,                    ; algorithm_info
+  ? 3: tstr,                    ; original_data_type
+  * uint => any                 ; additional integer-keyed properties
+}
+
+; Serial protocol wrapper with encoding declaration
+serial-cbor-packet = {
+  1: encoding-type,             ; encoding declaration
+  2: merkle-tree-cbor / merkle-proof-cbor  ; payload
+}
+
+encoding-type = &(
+  raw: 0,                       ; Raw bytes (most efficient)
+  ascii: 1,                     ; ASCII encoding
+  utf8: 2                       ; UTF-8 encoding
+)
+
+; Example CBOR Diagnostic Notation:
+;
+; Standard Merkle Tree (version 1, no security features):
+; {
+;   1: 1,                       / version /
+;   2: [                        / nodes (raw bytes) /
+;     h'a1b2c3d4e5f67890...',
+;     h'1234567890abcdef...'
+;   ],
+;   3: 15,                      / nodes_count /
+;   4: "sha256",                / hashalgo /
+;   5: 32                       / hash_size /
+; }
+;
+; Secure Merkle Tree (version 2+, with optional security features):
+; {
+;   1: 2,                       / version (security enabled) /
+;   2: [                        / nodes (raw bytes with security prefixes) /
+;     h'a1b2c3d4e5f67890...',
+;     h'1234567890abcdef...'
+;   ],
+;   3: 15,                      / nodes_count /
+;   4: "sha256-secure",         / hashalgo /
+;   5: 32,                      / hash_size /
+;   6: 4,                       / tree_depth (optional) /
+;   7: {                        / security_flags (optional) /
+;     1: false,                 / use_double_leaf_hash /
+;     2: true,                  / use_depth_prefix /
+;     3: true                   / use_node_prefix /
+;   }
+; }

@@ -1,0 +1,33 @@
+; Payload Schema for FLAG_STARDOME_ATTESTATION Stardome attestation request
+; Version 1.0.0_0
+; This schema defines the CBOR structure of the request payload sent by the host device to the Stardome SGE (ground) module
+; to request a Stardome attestation.
+
+; -----------------------------------------------------------------------------
+; 1. Payload structure
+; -----------------------------------------------------------------------------
+
+sign_request_payload = [
+  [+ bstr ],		; source_data
+  bool,   			; leaf_hashes
+  ? [+ bstr ],	; host_keys
+]
+
+; where:
+;
+; source_data is an array where the values are the source data to use as values for the leaf nodes, provided as raw bytes.
+; The data is mapped to the `leaf_source` leaf slots as defined in the selected Stardome attestation tree scheme,
+; starting from the first `leaf_source` index (fixed leaves are device-owned and are not provided by the request).
+
+; leaf_hashes is a boolean value to request to include leaf hashes within the Stardome attestation response
+
+; host_keys is an array where the values are the public keys to use as values for the leaf nodes, provided as raw bytes
+; The data would be mapped to the corresponding index of the leaf nodes layer as defined in the Stardome attestation tree scheme
+; starting from the first `leaf_source` index after those already computed for the source_data
+
+; Example:
+; [
+;   [h'534e2d3031...', h'534e2d3032...',h'534e2d3033...'],
+;   true,
+;   [h'534e2d3034...']
+; ]

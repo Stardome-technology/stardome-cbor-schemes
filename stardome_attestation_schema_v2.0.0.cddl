@@ -1,0 +1,61 @@
+; Schema for the Stardome attestation
+; Version 2.0.0
+; This schema defines the CBOR structure of the Stardome attestation computed by the Stardome module as response to the Stardome attestation request
+
+; -----------------------------------------------------------------------------
+; 1. Stardome attestation structure
+; -----------------------------------------------------------------------------
+
+stardome_attestation = {
+  1: bstr,		    		; installation_id
+  2: bstr,		    		; xmss_pk
+  3: bstr,				    ; stardome_attestation_tree_schema_definition
+  4: bstr,				    ; merkle_root
+  5: bstr,				    ; xmss_sig
+  6: bstr,				    ; epoch_hash
+  7: bstr,				    ; previous_mark_w_hash
+  8: bstr,            ; mark_w  
+  9: bstr,            ; mark_w_hash
+  10: bstr,           ; previous_att
+  11: uint,				    ; counter
+  12: bstr,           ; nonce
+  13: bstr,           ; shcap_policy_id
+  ? 14: [+ bstr ],		; leaf_hashes
+  ? 15: bstr,         ; stardome_chain_data
+}
+
+; where:
+;
+; installation_id is the Stardome module Installation Identifier Code hash, provided as raw bytes
+;
+; xmss_pk is the Stardome module XMSS public key, provided as raw bytes
+;
+; stardome_attestation_tree_schema_definition is a list Stardome attestation tree’s features, inherited from the accepted Stardome attestation tree schema
+; 
+; merkle_root is the Stardome attestation tree’s Merkle Root, provided as raw bytes
+;
+; xmss_sig is the XMSS Signature of the merkle_root || stardome_attestation_tree_schema_definition, provided as raw bytes
+;
+; epoch_hash is the hash of the accepted Stardome Epoch, provided as raw bytes
+;
+; previous_mark_w_hash is the hash of the previous Stardome Mark drift window, provided as raw bytes
+;
+; mark_w is the Stardome Mark drift window, provided as raw bytes
+;
+; mark_w_hash is the hash of the Stardome Mark drift window, provided as raw bytes
+;
+; previous_att is the hash of the previous Stardome attestation, provided as raw bytes
+;
+; counter is the value of Stardome attestation counter
+;
+; nonce is the received challenge nonce value 
+;
+; shcap_policy_id is an identifier of the adopted Stardome Mark computation policy and the SHCAP version;
+;
+; leaf_hashes is an array where the values are the leaf nodes hashes, provided as raw bytes.
+; The values are included according to the stardome_sign_request's with_leaf_hashes boolean value
+;
+; stardome_chain_data is the hash linkage to another Stardome attestation (Stardome Chain of Custody)
+
+
+For the stardome_attestation_tree_schema_definition schema reder to the stardome_attestation_tree_schema_definition_v2.0.0.cddl document.

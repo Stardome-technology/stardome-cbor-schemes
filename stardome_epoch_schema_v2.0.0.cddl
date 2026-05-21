@@ -1,0 +1,35 @@
+; Stardome Epoch Schema
+; Version 2.0.0
+; This schema defines the CBOR structure of the Stardome Epoch
+
+stardome_epoch = {
+  1: bstr,         ; pps_epoch_start
+  2: bstr,         ; pps_epoch_end
+  3: bstr,         ; timestamp_end
+  4: uint,         ; epoch_policy_id
+  5: bstr,         ; previous_epoch_hash
+  6: bstr,         ; window
+  7: bstr,         ; window_hash
+  8: [+ bstr ],		 ; temperature
+  9: bstr,         ; xmss_sig
+}
+
+; where:
+;
+; pps_epoch_start is the count n_(epoch_start) of PPS pulses observed since device start at the beginning of the epoch interval.
+;
+;	pps_epoch_end is the count of n_(epoch_end) PPS pulses observed since device start at the end of the epoch interval.
+;
+;	timestamp_end is the raw value T_RAW of the FPGA’s oscillator‑clocked counter sampled at the epoch closure.
+;
+;	epoch_policy_id identifier of the Stardome Epoch computation policy.
+;
+;	previous_epoch_hash is the hash linkage to the previous Stardome Epoch.
+;
+;	window is the Stardome Epoch drift window associated with the epoch-closing state.
+;
+;	window_hash is the hash of the Stardome Epoch drift window.
+;
+;	temperature are the the thermal observables associated with the closing state or aggregated over the epoch interval, according to the active epoch_policy_id;
+;
+; XMSS^MT signature of the Stardome Epoch
