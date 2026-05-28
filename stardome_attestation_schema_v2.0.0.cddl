@@ -3,7 +3,7 @@
 ; This schema defines the CBOR structure of the Stardome attestation computed by the Stardome module as response to the Stardome attestation request
 
 ; -----------------------------------------------------------------------------
-; 1. Stardome attestation structure
+; 1. Stardome attestation computed by Stardome module
 ; -----------------------------------------------------------------------------
 
 stardome_attestation = {
@@ -28,7 +28,7 @@ stardome_attestation = {
 ;
 ; installation_id is the Stardome module Installation Identifier Code hash, provided as raw bytes
 ;
-; xmss_pk is the Stardome module XMSS public key, provided as raw bytes
+; xmss_pk is the signing party XMSS public key, provided as raw bytes
 ;
 ; stardome_attestation_tree_schema_definition is a list Stardome attestation tree’s features, inherited from the accepted Stardome attestation tree schema
 ; 

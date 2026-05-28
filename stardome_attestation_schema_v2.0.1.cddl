@@ -1,0 +1,45 @@
+; Schema for the Stardome attestation
+; Version 2.0.0
+; This schema defines the CBOR structure of the Stardome attestation computed by a third-party software process that adopts the Stardome digital signature technology
+
+; -----------------------------------------------------------------------------
+; 2. Stardome attestation computed by third-party software
+; -----------------------------------------------------------------------------
+
+stardome_attestation = {
+  1: bstr,		    		; ext_id
+  2: bstr,		    		; xmss_pk
+  3: bstr,				    ; stardome_attestation_tree_schema_definition
+  4: bstr,				    ; merkle_root
+  5: bstr,				    ; xmss_sig
+  6: bstr,            ; previous_att
+  7: uint,				    ; counter
+  ? 8: bstr,          ; nonce
+  ? 9: [+ bstr ],	  	; leaf_hashes
+  ? 10: bstr,         ; stardome_chain_data
+}
+
+; where:
+;
+; ext_id is the third-party provided digital identity, such PKI certificates, provided as raw bytes
+;
+; xmss_pk is the signing party XMSS public key, provided as raw bytes
+;
+; stardome_attestation_tree_schema_definition is a list Stardome attestation tree’s features, inherited from the accepted Stardome attestation tree schema
+; 
+; merkle_root is the Stardome attestation tree’s Merkle Root, provided as raw bytes
+;
+; xmss_sig is the XMSS Signature of the merkle_root || stardome_attestation_tree_schema_definition, provided as raw bytes
+;
+; previous_att is the hash of the previous Stardome attestation, provided as raw bytes
+;
+; counter is the value of Stardome attestation counter
+;
+; nonce is the received challenge nonce value 
+;
+; leaf_hashes is an array where the values are the leaf nodes hashes, provided as raw bytes.
+;
+; stardome_chain_data is the hash linkage to another Stardome attestation (Stardome Chain of Custody)
+
+
+For the stardome_attestation_tree_schema_definition schema reder to the stardome_attestation_tree_schema_definition_v2.0.1.cddl document.
