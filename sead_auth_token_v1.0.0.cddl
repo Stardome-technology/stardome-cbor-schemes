@@ -1,0 +1,32 @@
+auth_token = {
+  1: org_id,      ; id
+  2: tstr,        ; scope
+  3: uint,        ; expiry
+  4: bstr,        ; nonce
+  5: sig          ; signature over canonical CBOR of fields 1–4
+  ? 6: tstr,      ; audience
+  ? 7: tstr,      ; action
+  ? 8: hash32,    ; payload_hash
+}
+
+
+; where:
+;
+; org_id should match the org_id value within SEAD
+;
+;	scope
+; Allowed values:
+; - ipfs_pin
+;
+; expiry (unix timestamp)
+;
+; nonce is a challenge random value 
+;
+; audience to restrict token usage among organizations
+;
+; action to bind the token to a specific method.
+; Allowed values:
+; - pin
+;
+; payload_hash to bind the token to the CID.
+; If adopted, prevents token reuse across uploads.
