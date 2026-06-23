@@ -6,7 +6,7 @@ auth_token = {
   5: sig          ; signature over canonical CBOR of fields 1–4
   ? 6: tstr,      ; audience
   ? 7: tstr,      ; action
-  ? 8: hash32,    ; payload_hash
+  8: hash32,    ; payload_hash
 }
 
 
@@ -29,4 +29,4 @@ auth_token = {
 ; - pin
 ;
 ; payload_hash to bind the token to the CID.
-; If adopted, prevents token reuse across uploads.
+; Prevents token reuse across uploads.
