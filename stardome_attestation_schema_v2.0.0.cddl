@@ -34,7 +34,7 @@ stardome_attestation = {
 ; 
 ; merkle_root is the Stardome attestation tree’s Merkle Root, provided as raw bytes
 ;
-; xmss_sig is the XMSS Signature of the merkle_root || stardome_attestation_tree_schema_definition, provided as raw bytes
+; xmss_sig is the XMSS Signature of the merkle_root, provided as raw bytes
 ;
 ; epoch_hash is the hash of the accepted Stardome Epoch, provided as raw bytes
 ;
