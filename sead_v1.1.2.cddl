@@ -80,11 +80,12 @@ org_genesis_body = {
   * dag_links
 }
 
-module_endorsement = {
-  1: module_id,
-  2: pk,              ; module_xmss_pk (or reference hash)
-  3: sig              ; module signature over (org_id, org_pk, not_before, not_after)
-}
+module_endorsement = [
+  module_id,
+  pk,              ; module_xmss_pk (or reference hash)
+  hash32,          ; merkle_root of the module's attestation tree
+  sig              ; module XMSS signature over merkle_root
+]
 
 org_key_revoke_body = {
   1: org_id,
