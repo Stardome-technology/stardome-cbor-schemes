@@ -96,10 +96,6 @@ org_key_revoke_body = {
   * dag_links
 }
 
-; Semantic use of dependency_refs for EdgeAuthorization:
-; - dependency_refs SHOULD include the OrgGenesis event_id that binds org_id -> org_pk.
-; - verifiers MAY use this reference to resolve the organization trust anchor before accepting the authorization.
-
 ; ---------- Edge Authorization ----------
 ; Signed by org writer key in the envelope.
 
@@ -119,6 +115,10 @@ edge_revocation_body = {
   4: tstr,            ; reason
   * dag_links
 }
+
+; Semantic use of dependency_refs for EdgeAuthorization:
+; - dependency_refs SHOULD include the OrgGenesis event_id that binds org_id -> org_pk.
+; - verifiers MAY use this reference to resolve the organization trust anchor before accepting the authorization.
 
 ; ---------- Receipt (host-facing) ----------
 ; Receipt is not necessarily written into SEAD; it is included in fault proofs.
