@@ -21,9 +21,9 @@ sign_request_payload = [
 
 ; leaf_hashes is a boolean value to request to include leaf hashes within the Stardome attestation response
 
-; host_keys is an array where the values are the public keys to use as values for the leaf nodes, provided as raw bytes
-; The data would be mapped to the corresponding index of the leaf nodes layer as defined in the Stardome attestation tree scheme
-; starting from the first `leaf_source` index after those already computed for the source_data
+; host_keys is an array where the values are the host's public keys to use as values for the leaf nodes, provided as raw bytes
+;
+; The data provided within the source_data array would be mapped to the corresponding index of the leaf nodes layer as defined in the Stardome attestation tree scheme.
 
 ; Example:
 ; [
