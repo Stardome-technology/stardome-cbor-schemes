@@ -52,7 +52,8 @@ event_type = &(
   edge_fault_proof: 30,
   edge_equivocation_proof: 31,
   storage_receipt: 40,
-  frontier_summary: 50
+  frontier_summary: 50,
+  replication_endpoint_catalog: 60
 )
 
 ; sead_body union
@@ -67,6 +68,7 @@ sead_body = org_genesis_body
           / edge_equivocation_proof_body
           / storage_receipt_body
           / frontier_summary_body
+          / replication_endpoint_catalog_body
 
 ; ---------- OrgGenesis ----------
 ; Envelope is signed by org writer key.
@@ -213,11 +215,42 @@ storage_receipt_body = {
 
 ; ---------- Frontier Summary ----------
 ; Signed by org writer key.
+;
+; Wire format matches the implemented FrontierSummaryBody (C++ and the Go gossip
+; observer): {1: org_id, 2: observed_heads, 3: summary_time}. There is no summary_id
+; field (key 4) on the wire; the deployed encoders never emitted one.
 
 frontier_summary_body = {
   1: org_id,
-  2: timestamp,
-  3: [* hash32],      ; observed_heads
-  4: hash32,          ; summary_id = H(canonical_cbor(al))
+  2: [* hash32],      ; observed_heads
+  3: timestamp,       ; summary_time
   * dag_links
 }
+
+; ---------- Replication Endpoint Catalog ----------
+; Signed by org writer key. Org asserts which nodes currently represent it for
+; frontier replication and synchronization.
+;
+; Supersession: the newest catalog for a given org (highest asserted_at, via the
+; per-writer chain) is authoritative. Prior catalogs remain in the DAG as an
+; append-only audit trail and are NOT deleted. A catalog SHOULD set writer_prev
+; (dag_link 91) to the prior catalog it supersedes, binding the chain.
+
+node_id = bstr      ; canonical libp2p peer identity (raw multihash bytes,
+                     ; e.g. the 34-byte ed25519/sha256 multihash). A consumer
+                     ; reconstructs the peer id with peer.IDFromBytes(...).
+address = tstr      ; reachable address (libp2p multiaddr and/or host:port)
+scope   = tstr      ; "frontier_replication" | "sync" | "both"
+
+replication_endpoint_catalog_body = {
+  1: org_id,
+  2: timestamp,       ; asserted_at
+  3: [* replication_endpoint],
+  * dag_links
+}
+
+replication_endpoint = [
+  node_id,
+  [* address],
+  ? scope,            ; absent = both (frontier_replication + sync)
+]
