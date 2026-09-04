@@ -1,7 +1,11 @@
 ; ============================================================
 ; SEAD — Stardome Edge Accountability DAG
-; Schema Version: 1.2.0
+; Schema Version: 1.3.0
 ; ============================================================
+; v1.3.0 adds the optional payload_kind (field 95) to edge_commit_body,
+; tagging a commit as an internal-message digest commit distinct from the
+; default hardware-attestation kind. Attestation commits omit field 95 and
+; remain byte-for-byte compatible with v1.2.0.
 
 ; ---------- basic types ----------
 hash32 = bstr .size 32
@@ -152,6 +156,10 @@ edge_commit_body = {
   ; --- receipt binding ---
   ? 7: hash32,         ; receipt_id (single commit)
   8: timestamp,
+  ? 95: tstr,          ; payload_kind ("attestation" | "message");
+                       ; present only when != "attestation"
+                       ; (message commits carry the SHAKE256 digest of the raw
+                       ; message bytes in field 3; raw bytes never enter the body)
   * dag_links
 }
 
@@ -159,6 +167,14 @@ edge_commit_body = {
 ; - dependency_refs SHOULD include the EdgeAuthorization event_id for (org_id, edge_id, edge_pk).
 ; - if the EdgeAuthorization itself contains dependency_refs, recursive resolution SHOULD reach OrgGenesis.
 ; - sync implementations MUST fetch and verify these dependencies before submitting the commit for local persistence.
+
+; Semantic use of payload_kind (field 95) for EdgeCommit:
+; - "message": payload_hash is the SHAKE256 digest of the raw internal-message bytes.
+;   The raw bytes are NOT stored in the DAG; a peer obtains them out-of-band (e.g. via the
+;   scoped artifact-by-payload_hash fetch) and recomputes SHAKE256(bytes) to verify integrity.
+; - "attestation" (default / absent): payload_hash is the SHAKE256 digest of the hardware
+;   attestation artifact. Field 95 MUST be omitted for attestation commits.
+; - A peer MAY request the artifact by payload_hash only for the message and attestation kinds.
 
 ; ===============================
 ; SEMANTIC RULES (informal)
