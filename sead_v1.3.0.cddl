@@ -1,0 +1,272 @@
+; ============================================================
+; SEAD — Stardome Edge Accountability DAG
+; Schema Version: 1.3.0
+; ============================================================
+; v1.3.0 adds the optional payload_kind (field 95) to edge_commit_body,
+; tagging a commit as an internal-message digest commit distinct from the
+; default hardware-attestation kind. Attestation commits omit field 95 and
+; remain byte-for-byte compatible with v1.2.0.
+
+; ---------- basic types ----------
+hash32 = bstr .size 32
+sig   = bstr
+pk    = bstr
+id    = bstr
+
+protocol_version = tstr
+org_id    = id
+edge_id   = id
+module_id = id
+
+timestamp = uint
+uint64 = uint
+
+; ---------- optional DAG-linking fields ----------
+; These fields are embedded into event bodies (and are hashed/signed).
+
+dag_links = {
+  ? 90: [* hash32],   ; parents (DAG edges)
+  ? 91: hash32,       ; writer_prev (per-signer chaining)
+  ? 92: uint64,       ; writer_seq
+  ? 93: [* hash32]    ; observed_heads (frontier summary)
+  ? 94: [* hash32]     ; dependency_refs: validation-critical ancestors, e.g. OrgGenesis / EdgeAuthorization
+}
+
+; ---------- SEAD event envelope ----------
+; event_id = H(canonical_cbor(event_body))
+; signature = Sign(canonical_cbor({event_type, event_id}))
+
+sead_event = {
+  1: protocol_version,
+  2: uint,          ; event_type
+  3: hash32,        ; event_id
+  4: sead_body,     ; event body
+  5: sig            ; signature of {event_type, event_id}
+}
+
+; event_type enumeration
+
+event_type = &(
+  org_genesis: 1,
+  org_key_revoke: 2,
+  edge_authorization: 10,
+  edge_revocation: 11,
+  edge_commit: 20,
+  edge_batch_head: 21,
+  edge_fault_proof: 30,
+  edge_equivocation_proof: 31,
+  storage_receipt: 40,
+  frontier_summary: 50,
+  replication_endpoint_catalog: 60
+)
+
+; sead_body union
+
+sead_body = org_genesis_body
+          / org_key_revoke_body
+          / edge_authorization_body
+          / edge_revocation_body
+          / edge_commit_body
+          / edge_batch_head_body
+          / edge_fault_proof_body
+          / edge_equivocation_proof_body
+          / storage_receipt_body
+          / frontier_summary_body
+          / replication_endpoint_catalog_body
+
+; ---------- OrgGenesis ----------
+; Envelope is signed by org writer key.
+; Module endorsements inside are signed by modules.
+
+org_genesis_body = {
+  1: org_id,
+  2: pk,              ; org_pk
+  3: timestamp,       ; not_before
+  4: timestamp,       ; not_after (0 if none)
+  5: [+ module_endorsement],
+  * dag_links
+}
+
+module_endorsement = [
+  module_id,
+  pk,              ; module_xmss_pk (or reference hash)
+  hash32,          ; merkle_root of the module's attestation tree
+  sig              ; module XMSS signature over merkle_root
+]
+
+org_key_revoke_body = {
+  1: org_id,
+  2: pk,              ; org_pk
+  3: timestamp,       ; revoke_time
+  4: tstr,            ; reason
+  * dag_links
+}
+
+; ---------- Edge Authorization ----------
+; Signed by org writer key in the envelope.
+
+edge_authorization_body = {
+  1: org_id,
+  2: edge_id,
+  3: pk,              ; edge_pk
+  4: timestamp,       ; not_before
+  5: timestamp,       ; not_after
+  * dag_links
+}
+
+edge_revocation_body = {
+  1: org_id,
+  2: edge_id,
+  3: timestamp,
+  4: tstr,            ; reason
+  * dag_links
+}
+
+; Semantic use of dependency_refs for EdgeAuthorization:
+; - dependency_refs SHOULD include the OrgGenesis event_id that binds org_id -> org_pk.
+; - verifiers MAY use this reference to resolve the organization trust anchor before accepting the authorization.
+
+; ---------- Receipt (host-facing) ----------
+; Receipt is not necessarily written into SEAD; it is included in fault proofs.
+; Edge signature target is implementation-defined but MUST bind payload_hash and deadline fields.
+
+edge_ingest_receipt = {
+  1: edge_id,
+  2: org_id,
+  3: module_id,
+  4: hash32,          ; payload_hash
+  5: timestamp,       ; received_time
+  6: timestamp,       ; publish_deadline
+  7: sig              ; edge signature
+}
+	
+; ---------- Commit model ----------
+; Signed by edge key in the envelope.
+edge_commit_body = {
+  1: edge_id,
+  2: org_id,
+  ; --- commit identification ---
+  ? 3: hash32,         ; payload_hash (present for single commit)
+  ; --- batch / sequencing ---
+  ? 4: uint64,         ; batch_seq (present for batch commits)
+  ; --- commitment ---
+  5: hash32,           ; commitment_root
+  ; --- optional linkage ---
+  ? 6: [* hash32],     ; payload_list (optional explicit list)
+  ; --- receipt binding ---
+  ? 7: hash32,         ; receipt_id (single commit)
+  8: timestamp,
+  ? 95: tstr,          ; payload_kind ("attestation" | "message");
+                       ; present only when != "attestation"
+                       ; (message commits carry the SHAKE256 digest of the raw
+                       ; message bytes in field 3; raw bytes never enter the body)
+  * dag_links
+}
+
+; Semantic use of dependency_refs for EdgeCommit:
+; - dependency_refs SHOULD include the EdgeAuthorization event_id for (org_id, edge_id, edge_pk).
+; - if the EdgeAuthorization itself contains dependency_refs, recursive resolution SHOULD reach OrgGenesis.
+; - sync implementations MUST fetch and verify these dependencies before submitting the commit for local persistence.
+
+; Semantic use of payload_kind (field 95) for EdgeCommit:
+; - "message": payload_hash is the SHAKE256 digest of the raw internal-message bytes.
+;   The raw bytes are NOT stored in the DAG; a peer obtains them out-of-band (e.g. via the
+;   scoped artifact-by-payload_hash fetch) and recomputes SHAKE256(bytes) to verify integrity.
+; - "attestation" (default / absent): payload_hash is the SHAKE256 digest of the hardware
+;   attestation artifact. Field 95 MUST be omitted for attestation commits.
+; - A peer MAY request the artifact by payload_hash only for the message and attestation kinds.
+
+; ===============================
+; SEMANTIC RULES (informal)
+; ===============================
+
+; Single commit:
+; - field 3 (payload_hash) MUST be present
+; - field 4 (batch_seq) MUST NOT be present
+; - commitment_root == payload_hash
+
+; Batch commit:
+; - field 4 (batch_seq) MUST be present
+; - commitment_root commits to a set of payload_hash values
+;   (e.g. Merkle root or equivalent)
+
+; payload_list is OPTIONAL (debug / transparency / small batches)
+
+; ---------- Fault Proofs ----------
+; Signed by an org writer key in the envelope.
+
+edge_fault_proof_body = {
+  1: edge_id,         ; accused_edge_id
+  2: org_id,
+  3: uint,            ; fault_type (1=missed_deadline)
+  4: bstr,            ; receipt_cbor (embedded receipt bytes)
+  5: timestamp,       ; observed_time
+  6: tstr,            ; notes
+  * dag_links
+}
+
+edge_equivocation_proof_body = {
+  1: edge_id,
+  2: org_id,
+  3: uint,            ; eq_type 
+  4: bstr,            ; obj_a_cbor
+  5: bstr,            ; obj_b_cbor
+  6: timestamp,
+  7: tstr,            ; notes
+  * dag_links
+}
+
+; ---------- Optional Storage Receipts ----------
+
+storage_receipt_body = {
+  1: org_id,
+  2: edge_id,
+  3: hash32,          ; payload_hash
+  4: tstr,            ; storage_cid (IPFS CID or other identifier)
+  5: timestamp,
+  6: uint,            ; retention_policy
+  7: sig,             ; storage actor signature (or edge signature if same)
+  * dag_links
+}
+
+; ---------- Frontier Summary ----------
+; Signed by org writer key.
+;
+; Wire format matches the implemented FrontierSummaryBody (C++ and the Go gossip
+; observer): {1: org_id, 2: observed_heads, 3: summary_time}. There is no summary_id
+; field (key 4) on the wire; the deployed encoders never emitted one.
+
+frontier_summary_body = {
+  1: org_id,
+  2: [* hash32],      ; observed_heads
+  3: timestamp,       ; summary_time
+  * dag_links
+}
+
+; ---------- Replication Endpoint Catalog ----------
+; Signed by org writer key. Org asserts which nodes currently represent it for
+; frontier replication and synchronization.
+;
+; Supersession: the newest catalog for a given org (highest asserted_at, via the
+; per-writer chain) is authoritative. Prior catalogs remain in the DAG as an
+; append-only audit trail and are NOT deleted. A catalog SHOULD set writer_prev
+; (dag_link 91) to the prior catalog it supersedes, binding the chain.
+
+node_id = bstr      ; canonical libp2p peer identity (raw multihash bytes,
+                     ; e.g. the 34-byte ed25519/sha256 multihash). A consumer
+                     ; reconstructs the peer id with peer.IDFromBytes(...).
+address = tstr      ; reachable address (libp2p multiaddr and/or host:port)
+scope   = tstr      ; "frontier_replication" | "sync" | "both"
+
+replication_endpoint_catalog_body = {
+  1: org_id,
+  2: timestamp,       ; asserted_at
+  3: [* replication_endpoint],
+  * dag_links
+}
+
+replication_endpoint = [
+  node_id,
+  [* address],
+  ? scope,            ; absent = both (frontier_replication + sync)
+]
