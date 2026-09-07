@@ -77,12 +77,21 @@ sead_body = org_genesis_body
 ; ---------- OrgGenesis ----------
 ; Envelope is signed by org writer key.
 ; Module endorsements inside are signed by modules.
+;
+; VALIDITY WINDOW semantics (org_genesis_body.not_before / .not_after):
+; not_before and not_after bound the OVERALL validity of the org key — the time
+; range during which the org writer key is authorized to sign org-level events
+; (edge_authorization, org_key_revoke, ...). They are NOT a window within which
+; a single one-off action must be performed. After not_after elapses the org key
+; is no longer valid, and verifiers MUST reject events signed by it. not_after
+; of 0 means "no expiry". A new org_genesis (new org key + fresh window) or an
+; explicit re-endorsement is required once a window has passed.
 
 org_genesis_body = {
   1: org_id,
   2: pk,              ; org_pk
-  3: timestamp,       ; not_before
-  4: timestamp,       ; not_after (0 if none)
+  3: timestamp,       ; not_before — org key validity start (unix seconds)
+  4: timestamp,       ; not_after — org key validity end (0 = no expiry)
   5: [+ module_endorsement],
   * dag_links
 }
@@ -104,13 +113,22 @@ org_key_revoke_body = {
 
 ; ---------- Edge Authorization ----------
 ; Signed by org writer key in the envelope.
+;
+; VALIDITY WINDOW semantics (edge_authorization_body.not_before / .not_after):
+; These bound the OVERALL window during which the org authorizes THIS edge key
+; to act (commit edge_commit / edge_batch_head events under the org). They are
+; NOT a window within which the edge must perform a single one-off action. After
+; not_after elapses the edge is NO LONGER authorized and verifiers MUST reject
+; its commits (e.g. ERR_EDGE_NOT_AUTHORIZED / no active edge authorization).
+; not_after of 0 means "no expiry". A fresh edge_authorization is required once
+; the window has passed.
 
 edge_authorization_body = {
   1: org_id,
   2: edge_id,
   3: pk,              ; edge_pk
-  4: timestamp,       ; not_before
-  5: timestamp,       ; not_after
+  4: timestamp,       ; not_before — edge authorization validity start (unix seconds)
+  5: timestamp,       ; not_after — edge authorization validity end (0 = no expiry)
   * dag_links
 }
 
