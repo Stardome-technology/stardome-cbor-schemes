@@ -21,6 +21,19 @@ module_id = id
 timestamp = uint
 uint64 = uint
 
+; ---------- internal-message payload ----------
+; The artifact behind a `payload_kind = "message"` edge_commit (field 3 =
+; payload_hash = SHAKE256(canonical_cbor(message_payload))). The payload is a
+; CBOR map with TEXT keys; it is committed digest-only and never enters the DAG.
+; Field encoding follows sead_v1.3.0.cddl's CBOR conventions (canonical form).
+message_payload = {
+  "to": tstr,               ; recipient (edge_id hex or display name)
+  "msg": tstr,              ; message text
+  ? "round": uint,          ; round sequence number (default 0 when absent)
+  ? "test_run_id": tstr,    ; test/integration run identifier (default "" when absent)
+  ? "parents": [* tstr]     ; triggering event_ids (hex) this payload links to
+}
+
 ; ---------- optional DAG-linking fields ----------
 ; These fields are embedded into event bodies (and are hashed/signed).
 
@@ -187,9 +200,12 @@ edge_commit_body = {
 ; - sync implementations MUST fetch and verify these dependencies before submitting the commit for local persistence.
 
 ; Semantic use of payload_kind (field 95) for EdgeCommit:
-; - "message": payload_hash is the SHAKE256 digest of the raw internal-message bytes.
-;   The raw bytes are NOT stored in the DAG; a peer obtains them out-of-band (e.g. via the
-;   scoped artifact-by-payload_hash fetch) and recomputes SHAKE256(bytes) to verify integrity.
+; - "message": payload_hash is the SHAKE256 digest of the message payload, a
+;   canonical-CBOR `message_payload` map (see type above). The raw bytes are NOT
+;   stored in the DAG; a peer obtains them out-of-band (e.g. via the scoped
+;   artifact-by-payload_hash fetch) and recomputes SHAKE256(bytes) to verify
+;   integrity. The message payload wire format is CBOR only; JSON payloads are
+;   not valid.
 ; - "attestation" (default / absent): payload_hash is the SHAKE256 digest of the hardware
 ;   attestation artifact. Field 95 MUST be omitted for attestation commits.
 ; - A peer MAY request the artifact by payload_hash only for the message and attestation kinds.
