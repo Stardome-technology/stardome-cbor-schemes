@@ -1,5 +1,10 @@
 # Tasks
 
+> **IMPLEMENTATION ORDER: WAVE 1 (start here) — #1 of 5.**
+> **Repo:** stardome-cbor-schemes. **Risk:** LOW (test-only, no production change).
+> **Depends on:** NOTHING. **Blocks:** NOTHING. Safe to run in parallel with any other change.
+> See `openspec/SEQUENCING.md` for the full cross-repo order.
+
 ## Phase 1: Conformance test (uses existing rejection)
 
 - [ ] 1.1 Submit a **genuine** SEAD envelope → assert **accepted** (positive control).
