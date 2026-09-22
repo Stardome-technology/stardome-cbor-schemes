@@ -79,6 +79,23 @@
       (pre-existing `validate_envelope`, `lib/protocol/envelope.hpp:108`,
       called at `grpc_server.cpp:816`). Attribution detail in
       `tests/REJECTION_ATTRIBUTION.md`.)
-- [ ] The scheme-validation gap is documented, not hidden or falsely claimed as passing.
+- [x] The scheme-validation gap is documented, not hidden or falsely claimed
+      as passing.
+      (Gate verified 2026-09-22 by a fresh live re-run of
+      `tests/sead_scheme_gap.py` against sead-core via gRPC `Core.PostEvent`
+      (fresh DB per case): 3/3 cases behaved as documented — (A) extra keys
+      6/999 outside the CDDL `* dag_links` range → **ACCEPTED (GAP)**,
+      (B) non-canonical indefinite-length body map → **ACCEPTED (GAP)**,
+      (C) wrong body type → rejected only INCIDENTALLY by the type-specific
+      decoder. The gap is recorded honestly in three places, none of which
+      claims it as a passing rejection: task 1.3 above (explicitly labelled
+      "GAP CONFIRMED — informational record, NOT a rejection pass"), the
+      drift-detector in `tests/sead_scheme_gap.py` (asserts the gap still
+      HOLDS — it FAILS if the server ever starts rejecting A/B, forcing this
+      doc to be updated rather than silently drifting), and CASE 2 —
+      NOT REJECTED in `tests/sead_conformance_report.py` (rendered as the
+      documented gap, not a pass). Per the spec requirement "Wrong-scheme
+      gap shown honestly", nothing in this change marks the wrong-scheme case
+      as rejected.)
 - [ ] No production code change to the rejection path (test-only change).
 - [ ] The console output is honest about what is and isn't caught.
