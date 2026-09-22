@@ -7,7 +7,10 @@
 
 ## Phase 1: Conformance test (uses existing rejection)
 
-- [ ] 1.1 Submit a **genuine** SEAD envelope → assert **accepted** (positive control).
+- [x] 1.1 Submit a **genuine** SEAD envelope → assert **accepted** (positive control).
+      (see `tests/sead_positive_control.py` — genuine org_genesis signed with
+      XMSS-SHAKE256_20_256 test vector, submitted via gRPC `Core.PostEvent` to a
+      live sead-core; asserts `status="accepted"`. PASS verified 2026-09-22.)
 - [ ] 1.2 Submit a **non-SEAD / malformed** payload to `POST /events` → assert
       **rejected** with `ERR_INVALID_CBOR` (undecodable) or `ERR_INVALID_ENVELOPE`
       (missing fields) — the operator's scenario; works today.
