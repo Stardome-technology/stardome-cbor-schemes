@@ -20,8 +20,21 @@
       rejected with the expected error code. 4/4 PASS verified 2026-09-22.
       Rejection comes from the existing `proto_to_envelope` decode +
       `validate_envelope` layers — no new detection added.)
-- [ ] 1.3 (Informational) Submit a **valid-envelope-but-wrong-scheme** payload →
+- [x] 1.3 (Informational) Submit a **valid-envelope-but-wrong-scheme** payload →
       record that it is **accepted** today (the gap), do NOT mark it as a pass.
+      [GAP CONFIRMED — informational record, NOT a rejection pass]
+      (see `tests/sead_scheme_gap.py` — 3 probes against a live sead-core via
+      gRPC `Core.PostEvent`, each on a fresh DB. GAP CONFIRMED 2026-09-22:
+      (A) org_genesis body with extra keys 6/999 outside the CDDL `* dag_links`
+      range → **ACCEPTED** (gap, not a pass); (B) semantically valid body
+      encoded with an indefinite-length map (non-canonical CBOR) →
+      **ACCEPTED** (gap, not a pass); (C) non-org_genesis body under
+      event_type=1 → rejected `ERR_INVALID_BODY`, showing wrong-body
+      rejection is only *incidental* to the type-specific decoder, not
+      scheme validation. Nothing validates the body against
+      `sead_v1.3.0.cddl` at commit. The test asserts the documented gap
+      still holds (drift-detector): if the server ever starts rejecting A/B,
+      it fails so this doc gets updated.)
 
 ## Phase 2: Surface honestly in the console
 
