@@ -38,8 +38,20 @@
 
 ## Phase 2: Surface honestly in the console
 
-- [ ] 2.1 Render the conformance result with the two cases clearly labeled
+- [x] 2.1 Render the conformance result with the two cases clearly labeled
       (rejected vs. not-rejected).
+      (see `tests/sead_conformance_report.py` — runs the full probe set
+      against a live sead-core via gRPC `Core.PostEvent` (fresh DB per
+      probe) and renders a report with the two cases clearly labeled:
+      CASE 1 — REJECTED: non-SEAD/malformed payloads (ERR_INVALID_CBOR /
+      ERR_INVALID_ENVELOPE from the existing decode + validate_envelope
+      layers); CASE 2 — NOT REJECTED: valid-envelope-but-wrong-scheme
+      payloads (accepted today = the documented GAP, NOT a pass; the
+      wrong_body_type probe is marked as rejected only INCIDENTALLY by the
+      type-specific decoder). Positive control included so rejections are
+      shown to be specific to non-compliance. 8/8 probes behaved as
+      documented, PASS verified 2026-09-22. Drift-detector: fails if any
+      case diverges from the documented contract.)
 - [ ] 2.2 Note that the rejection comes from the existing `validate_envelope`
       layer (no new detection added).
 
