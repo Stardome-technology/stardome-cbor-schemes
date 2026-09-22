@@ -22,8 +22,15 @@ The renderer is a pure function (render_report) over collected probe results
 so the labelling can be reviewed independently of the live run.
 
 Exit 0 = every probe behaved as documented (positive accepted, Case 1 all
-rejected with expected codes, Case 2 all accepted = gap still holds).
-Non-zero = behaviour drifted from the documented contract — update OpenSpec.
+rejected with expected codes, Case 2 all accepted = gap still holds) AND
+the honesty self-audit (audit_honesty) confirms the rendered console output
+is honest about what is and isn't caught: accepted wrong-scheme probes are
+labelled NOT REJECTED, the GAP is named and disclaimed as not a pass, the
+incidental rejection stays labelled incidental, and no blanket "PASS" is
+claimed while the gap is open. The audit is itself self-tested against a
+deliberately dishonest render.
+Non-zero = behaviour drifted from the documented contract, or the console
+output was found dishonest — update OpenSpec.
 """
 import sys, os, socket, subprocess, tempfile, time, hashlib
 from pathlib import Path
@@ -290,6 +297,54 @@ def render_report(rows):
     lines.append("=" * 72)
     return "\n".join(lines)
 
+# ── Honesty self-audit (Quality Gate: console output is honest) ─────────────
+def audit_honesty(text, rows):
+    """Assert the RENDERED console output is honest about what is and isn't
+    caught. This guards the report itself, not the server: if a future edit
+    to the renderer (or a flipped expectation) ever makes the output claim
+    the wrong-scheme GAP is closed, or presents a Case 2 probe as a passing
+    rejection, this audit fails the run.
+
+    Returns a list of problems (empty = honest)."""
+    problems = []
+
+    # 1. Every Case 2 probe that was actually ACCEPTED must be rendered as
+    #    "NOT REJECTED" next to its name — the gap must be visible, never
+    #    silently omitted or mislabelled.
+    for r_ in rows:
+        if r_["group"] == "case2_not_rejected" and r_["outcome"] == "ACCEPTED":
+            if f"[{r_['name']}] NOT REJECTED" not in text:
+                problems.append(
+                    f"Case 2 probe '{r_['name']}' was ACCEPTED but is not "
+                    f"rendered as 'NOT REJECTED' — output hides the gap")
+
+    # 2. The gap must be named explicitly as a GAP and explicitly disclaimed
+    #    as not a pass (whitespace-collapsed so line wrapping is fine).
+    collapsed = " ".join(text.split())
+    if "GAP" not in collapsed:
+        problems.append("rendered output never names the scheme-validation GAP")
+    if "NOT a pass" not in collapsed:
+        problems.append("rendered output lacks the 'NOT a pass' disclaimer "
+                       "for the accepted wrong-scheme probes")
+
+    # 3. The incidental rejection must stay labelled as incidental — it must
+    #    not be presented as evidence of scheme validation.
+    if any(r_["group"] == "case2_not_rejected" and r_["outcome"] == "REJECTED"
+           for r_ in rows):
+        if "INCIDENTAL" not in collapsed:
+            problems.append("a Case 2 probe was rejected but the output does "
+                           "not label the rejection as INCIDENTAL")
+
+    # 4. While any Case 2 payload is still accepted, the overall verdict must
+    #    never read as a blanket pass.
+    if any(r_["group"] == "case2_not_rejected" and r_["outcome"] == "ACCEPTED"
+           for r_ in rows):
+        if "OVERALL: PASS" in text:
+            problems.append("output claims 'OVERALL: PASS' while wrong-scheme "
+                           "payloads are still accepted")
+
+    return problems
+
 # ── Run ─────────────────────────────────────────────────────────────────────
 print("[2/4] probe harness ready (fresh sead-core per probe)")
 rows = []
@@ -307,7 +362,28 @@ for group, name, payload, expected, code, why in PROBES:
 
 print("[3/4] probes complete — rendering report")
 print()
-print(render_report(rows))
+report = render_report(rows)
+print(report)
+
+# Audit the rendered console output itself (Quality Gate: honesty).
+problems = audit_honesty(report, rows)
+
+# Self-test the audit: a deliberately dishonest render (gap claimed as closed,
+# accepted probe shown as rejected) MUST be caught, or the audit is toothless.
+dishonest = report.replace("NOT REJECTED", "REJECTED").replace(
+    "known GAP, honestly labeled, NOT claimed as a pass.",
+    "OVERALL: PASS — full scheme conformance achieved.")
+if not audit_honesty(dishonest, rows):
+    problems.append("honesty audit failed to catch a deliberately dishonest "
+                   "render — the audit itself is broken")
+
 drift = [r_ for r_ in rows if not r_["match"]]
 print(f"[4/4] {len(rows) - len(drift)}/{len(rows)} probes behaved as documented")
+if problems:
+    print("HONESTY AUDIT: FAIL — console output misrepresents what is caught:")
+    for p in problems:
+        print(f"  - {p}")
+    sys.exit(1)
+print("HONESTY AUDIT: PASS — output labels the GAP, the incidental rejection,")
+print("and does not claim the wrong-scheme case as caught.")
 sys.exit(1 if drift else 0)

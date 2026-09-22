@@ -112,4 +112,19 @@
       unpushed commits (`git status --short` empty). All new code is
       client-side test tooling that talks to the live server over gRPC
       `Core.PostEvent` — no new detection was added anywhere.)
-- [ ] The console output is honest about what is and isn't caught.
+- [x] The console output is honest about what is and isn't caught.
+      (Gate verified 2026-09-22 by a fresh live re-run of
+      `tests/sead_conformance_report.py` against sead-core via gRPC
+      `Core.PostEvent` (fresh DB per probe): 8/8 probes behaved as
+      documented AND the report now carries a machine-checked honesty
+      self-audit (`audit_honesty`) that fails the run unless the rendered
+      console output: (1) labels every ACCEPTED wrong-scheme probe as
+      "NOT REJECTED" beside its name; (2) names the scheme-validation GAP
+      explicitly and carries the "NOT a pass" disclaimer; (3) keeps the
+      wrong_body_type rejection labelled as INCIDENTAL (type-specific
+      decoder, not scheme validation); (4) never prints a blanket
+      "OVERALL: PASS" while any wrong-scheme payload is still accepted.
+      The audit is itself self-tested each run against a deliberately
+      dishonest render (gap-claimed-closed / accepted-shown-as-rejected)
+      and must catch it, so the gate cannot silently rot into a no-op.
+      Live run: HONESTY AUDIT: PASS, exit 0.)
