@@ -11,9 +11,15 @@
       (see `tests/sead_positive_control.py` — genuine org_genesis signed with
       XMSS-SHAKE256_20_256 test vector, submitted via gRPC `Core.PostEvent` to a
       live sead-core; asserts `status="accepted"`. PASS verified 2026-09-22.)
-- [ ] 1.2 Submit a **non-SEAD / malformed** payload to `POST /events` → assert
+- [x] 1.2 Submit a **non-SEAD / malformed** payload to `POST /events` → assert
       **rejected** with `ERR_INVALID_CBOR` (undecodable) or `ERR_INVALID_ENVELOPE`
       (missing fields) — the operator's scenario; works today.
+      (see `tests/sead_negative_control.py` — 4 malformed cases (empty bytes,
+      non-CBOR bytes, missing body+signature, missing protocol_version)
+      submitted via gRPC `Core.PostEvent` to a live sead-core; each asserted
+      rejected with the expected error code. 4/4 PASS verified 2026-09-22.
+      Rejection comes from the existing `proto_to_envelope` decode +
+      `validate_envelope` layers — no new detection added.)
 - [ ] 1.3 (Informational) Submit a **valid-envelope-but-wrong-scheme** payload →
       record that it is **accepted** today (the gap), do NOT mark it as a pass.
 
