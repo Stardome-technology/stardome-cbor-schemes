@@ -52,8 +52,18 @@
       shown to be specific to non-compliance. 8/8 probes behaved as
       documented, PASS verified 2026-09-22. Drift-detector: fails if any
       case diverges from the documented contract.)
-- [ ] 2.2 Note that the rejection comes from the existing `validate_envelope`
+- [x] 2.2 Note that the rejection comes from the existing `validate_envelope`
       layer (no new detection added).
+      (see `tests/REJECTION_ATTRIBUTION.md` — verified against sead-service
+      source 2026-09-22: CASE 1 rejections come entirely from pre-existing
+      code — `proto_to_envelope`/`decode_cbor` → `ERR_INVALID_CBOR`
+      (`src/sead-core/grpc_server.cpp:810-812`) and `validate_envelope`
+      (`lib/protocol/envelope.hpp:108`, called at `grpc_server.cpp:816`)
+      → `ERR_INVALID_ENVELOPE` for missing required envelope fields 1/2/4/5.
+      `validate_envelope` is structural-only (never inspects the body
+      against `sead_v1.3.0.cddl`), which is exactly why the CASE 2 gap
+      persists. No production code was modified by this change — all new
+      code lives in `tests/` of stardome-cbor-schemes.)
 
 ## Quality Gate
 
