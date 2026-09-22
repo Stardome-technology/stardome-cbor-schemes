@@ -97,5 +97,19 @@
       documented gap, not a pass). Per the spec requirement "Wrong-scheme
       gap shown honestly", nothing in this change marks the wrong-scheme case
       as rejected.)
-- [ ] No production code change to the rejection path (test-only change).
+- [x] No production code change to the rejection path (test-only change).
+      (Verified 2026-09-22 by full diff audit: `git diff origin/dev --name-only`
+      in stardome-cbor-schemes shows only `.gitignore` (added ignores for
+      `__pycache__/` and `tests/gen/` test artifacts), this `tasks.md`, and
+      five new files under `tests/` (`sead_positive_control.py`,
+      `sead_negative_control.py`, `sead_scheme_gap.py`,
+      `sead_conformance_report.py`, `REJECTION_ATTRIBUTION.md`). Zero
+      production source files changed — a filter for `*.cpp/*.hpp/*.c/*.h`
+      outside `tests/` and a grep for `grpc_server|envelope|validate|cddl|src/|lib/`
+      in the changed-path list both return nothing. The rejection path itself
+      lives in sead-service (`src/sead-core/grpc_server.cpp`,
+      `lib/protocol/envelope.hpp`); that repo's working tree is clean with no
+      unpushed commits (`git status --short` empty). All new code is
+      client-side test tooling that talks to the live server over gRPC
+      `Core.PostEvent` — no new detection was added anywhere.)
 - [ ] The console output is honest about what is and isn't caught.
