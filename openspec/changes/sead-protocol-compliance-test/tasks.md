@@ -67,8 +67,18 @@
 
 ## Quality Gate
 
-- [ ] Non-SEAD/malformed payloads are rejected (`ERR_INVALID_CBOR` /
+- [x] Non-SEAD/malformed payloads are rejected (`ERR_INVALID_CBOR` /
       `ERR_INVALID_ENVELOPE`).
+      (Gate verified 2026-09-22 by a fresh live run of
+      `tests/sead_negative_control.py` against sead-core via gRPC
+      `Core.PostEvent`: 4/4 malformed cases rejected with the expected
+      codes — empty bytes and non-CBOR bytes → `ERR_INVALID_CBOR`
+      (pre-existing `proto_to_envelope`/`decode_cbor`,
+      `src/sead-core/grpc_server.cpp:810-812`); missing body (key 4) and
+      missing protocol_version (key 1) → `ERR_INVALID_ENVELOPE`
+      (pre-existing `validate_envelope`, `lib/protocol/envelope.hpp:108`,
+      called at `grpc_server.cpp:816`). Attribution detail in
+      `tests/REJECTION_ATTRIBUTION.md`.)
 - [ ] The scheme-validation gap is documented, not hidden or falsely claimed as passing.
 - [ ] No production code change to the rejection path (test-only change).
 - [ ] The console output is honest about what is and isn't caught.
