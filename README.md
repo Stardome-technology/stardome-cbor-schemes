@@ -1,16 +1,5 @@
 # Stardome digital signature schemas
 
-## Changelogs
-
-04/2026 TODOs to keep in mind when updating codebase to v2
-added v2 schemas
-changed naming conventions
-changed from array to objects
-dropped host_keys from attestation request
-dropped host_keys from attestation response
-changed XMSS signature from root-only to root+context
-stardome_host_id_response installation_id required
-
 ## Schema
 
 Naming conventions:
@@ -78,3 +67,8 @@ or no new commits from those keys will be accepted.
 
 The on-device firmware is resource-constrained, so some request handlers use a lightweight CBOR parser that supports the schema-defined subset. In particular, `stardome_proof_request_scheme_v1.0.0_*.cddl` and `stardome_proof_request_schema_v2.0.0.cddl` requests should use **definite-length** CBOR containers (no indefinite-length arrays/maps/strings). Python `cbor2` emits definite-length CBOR by default.
 
+## Git workflow
+This repository is a fork consumed as a submodule: development integrates into the
+`stardome-stripped*` branch, never into the inherited upstream `main`/`master`.
+The authoritative rules for contributors and agents are in the `## Git workflow`
+section of [AGENTS.md](AGENTS.md).
