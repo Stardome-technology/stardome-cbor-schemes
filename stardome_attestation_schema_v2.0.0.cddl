@@ -79,4 +79,4 @@ time_check_result = &(no_host_time: 0, approved: 1, not_approved: 2)
 ; (key 17) is exactly the no_host_time (0) case
 
 
-For the stardome_attestation_tree_schema_definition schema reder to the stardome_attestation_tree_schema_definition_v2.0.0.cddl document.
+; For the stardome_attestation_tree_schema_definition schema refer to the stardome_attestation_tree_schema_v2.0.0.cddl document.
