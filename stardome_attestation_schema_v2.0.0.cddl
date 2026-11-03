@@ -22,7 +22,15 @@ stardome_attestation = {
   13: bstr,           ; shcap_policy_id
   ? 14: [+ bstr ],		; leaf_hashes
   ? 15: bstr,         ; stardome_chain_data
+  16: uint,           ; module_rtc_time
+  ? 17: uint,         ; host_time_claim
+  18: time_check_result, ; time_check_result
 }
+
+; module verdict on the host_time_claim cross-check; extensible by appending values;
+; the consistency tolerance and anchor arithmetic are owned by the shcap_policy_id
+; policy, not by this schema
+time_check_result = &(no_host_time: 0, approved: 1, not_approved: 2)
 
 ; where:
 ;
@@ -56,6 +64,19 @@ stardome_attestation = {
 ; The values are included according to the stardome_sign_request's with_leaf_hashes boolean value
 ;
 ; stardome_chain_data is the hash linkage to another Stardome attestation (Stardome Chain of Custody)
+;
+; module_rtc_time is the raw reading of the module's own battery-backed, free-running RTC
+; (Unix seconds) at signing time; the value is module-measured and is never adjusted,
+; slewed, or supplied by the host
+;
+; host_time_claim is the host-declared timestamp (Unix seconds) cross-checked by the module,
+; echoed verbatim from the stardome_attestation_request's host_time_claim; absent when the
+; integrator supplies no host time
+;
+; time_check_result is the module's verdict at signing on whether the host_time_claim is
+; consistent with the module RTC within the tolerance of the active shcap_policy_id:
+; no_host_time (0), approved (1), or not_approved (2); the absence of host_time_claim
+; (key 17) is exactly the no_host_time (0) case
 
 
 For the stardome_attestation_tree_schema_definition schema reder to the stardome_attestation_tree_schema_definition_v2.0.0.cddl document.

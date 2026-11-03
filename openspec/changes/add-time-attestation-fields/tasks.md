@@ -2,7 +2,7 @@
 
 ## Phase 1 — CDDL revision
 
-- [ ] 1.1 `stardome_attestation_schema_v2.0.0.cddl`: add keys 16/17/18 +
+- [x] 1.1 `stardome_attestation_schema_v2.0.0.cddl`: add keys 16/17/18 +
   `time_check_result` enum + `where:` documentation (per approved field set).
 - [ ] 1.2 `stardome_attestation_request_schema_v2.0.0.cddl`: add optional key 8
   `host_time_claim` + documentation (absent = no host time).
