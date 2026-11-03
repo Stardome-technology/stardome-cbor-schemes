@@ -6,7 +6,7 @@
   `time_check_result` enum + `where:` documentation (per approved field set).
 - [x] 1.2 `stardome_attestation_request_schema_v2.0.0.cddl`: add optional key 8
   `host_time_claim` + documentation (absent = no host time).
-- [ ] 1.3 `stardome_attestation_tree_schema_v2.0.0.cddl`: correct
+- [x] 1.3 `stardome_attestation_tree_schema_v2.0.0.cddl`: correct
   `leaf_timestamp: 12` comment (device-owned module RTC, raw uint Unix
   seconds); add `leaf_host_time_claim: 15`, `leaf_time_check_result: 16`;
   update fixed map `42: 12, 43: 15, 44: 16`, `leaf_source` range `45..62`;
