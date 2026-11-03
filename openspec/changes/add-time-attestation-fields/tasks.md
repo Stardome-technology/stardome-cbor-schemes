@@ -11,7 +11,7 @@
   seconds); add `leaf_host_time_claim: 15`, `leaf_time_check_result: 16`;
   update fixed map `42: 12, 43: 15, 44: 16`, `leaf_source` range `45..62`;
   update the trailing schema array accordingly.
-- [ ] 1.4 Cross-check the three files for internal consistency (field names,
+- [x] 1.4 Cross-check the three files for internal consistency (field names,
   comments, counts: 14 fixed + 18 source = 32).
 
 ## Phase 2 — Validation gate
