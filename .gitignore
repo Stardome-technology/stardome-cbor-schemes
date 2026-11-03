@@ -11,3 +11,6 @@
 # ── Semble ──────────────────────────────────────────────────────────────────
 .semble-cache/
 .git/semble/
+# Python / generated test artifacts
+__pycache__/
+tests/gen/
