@@ -18,7 +18,7 @@
 
 - [x] 2.1 Grammar-validate the three CDDLs (`cddl` CLI if available on the
   build host; otherwise manual review + note in MR).
-- [ ] 2.2 `openspec validate add-time-attestation-fields --strict` green.
+- [x] 2.2 `openspec validate add-time-attestation-fields --strict` green.
 
 ## Phase 3 — Downstream pointers (no code here)
 
