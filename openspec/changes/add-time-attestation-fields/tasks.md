@@ -22,6 +22,7 @@
 
 ## Phase 3 — Downstream pointers (no code here)
 
-- [ ] 3.1 MR description lists downstream follow-ups: adeptus-v3 pinned-manifest
+- [x] 3.1 MR description lists downstream follow-ups: adeptus-v3 pinned-manifest
   re-pin (S1-land), firmware emission (S2), client verifier/fixtures (post-S2).
+  (See `MR_DESCRIPTION.md` in this change dir.)
 - [ ] 3.2 Ask schema owner to confirm D3 (leaf-42 device-owned reading).
