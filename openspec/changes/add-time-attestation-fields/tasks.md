@@ -25,4 +25,7 @@
 - [x] 3.1 MR description lists downstream follow-ups: adeptus-v3 pinned-manifest
   re-pin (S1-land), firmware emission (S2), client verifier/fixtures (post-S2).
   (See `MR_DESCRIPTION.md` in this change dir.)
-- [ ] 3.2 Ask schema owner to confirm D3 (leaf-42 device-owned reading).
+- [x] 3.2 Ask schema owner to confirm D3 (leaf-42 device-owned reading).
+  (Ruling landed 2026-11-05: D3 CONFIRMED — leaf 42 = device-owned module RTC
+  reading, raw uint Unix seconds; integrator-dependency clause added to both
+  leaf-42 comment locations in the tree schema CDDL.)

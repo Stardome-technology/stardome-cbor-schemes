@@ -21,7 +21,7 @@ leaves_type_id = &(
   leaf_nonce: 9,                    ; received challenge value
   leaf_shcap_policy_id: 10,         ; identifier of the adopted Stardome Mark computation policy and the SHCAP version;
   leaf_chain_data: 11,              ; hash linkage to another Stardome attestation (Stardome Chain of Custody)
-  leaf_timestamp: 12,               ; module's own RTC reading (raw uint, Unix seconds); device-owned, never host-supplied
+  leaf_timestamp: 12,               ; module's own RTC reading (raw uint, Unix seconds); device-owned, never host-supplied; the module's CLAIM at signing time — validity/adherence is decided by the integrator's verifier-side cross-check vs the adopted epoch anchor (EP-D17/D23)
   leaf_source: 13,                  ; Source data type, provided by the host device
   leaf_ext_id: 14,                  ; Third-party provided digital identity
   leaf_host_time_claim: 15,         ; host-declared timestamp (raw uint, Unix seconds) echoed verbatim from the request; leaf_padding when absent
@@ -57,6 +57,9 @@ stardome_attestation_tree_schema_definition = {
 ; followed by a dynamic set of leaf nodes with source-data type values, starting from the last fixed set’s leaf node.
 ; Leaf 42 (leaf_timestamp) is device-owned: the module places the raw reading of its own
 ; battery-backed, free-running RTC (Unix seconds) there; it is never supplied by the host.
+; The value is the module's CLAIM at signing time: its validity/adherence depends on the
+; integrator — the module commits to the raw reading, and the integrator decides acceptance
+; via the verifier-side cross-check against the adopted epoch anchor (EP-D17/D23).
 
 ; -----------------------------------------------------------------------------
 ; 4. Stardome attestation tree schema 
