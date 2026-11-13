@@ -43,6 +43,23 @@ stardome_<..>_scheme_vXX.XX.XX_Y
 | stardome_sign_request_scheme_v1.0.0_0 | 1.0.0 | SGE |
 | stardome_sign_request_scheme_v1.0.0_1 | 1.0.0 | SSP |
 
+## Identity OID → scheme mapping (pk prefix)
+
+Every Stardome XMSS public key carries a 4-byte big-endian **identity OID**
+prefix identifying its scheme class. Third-party verifiers of software-signed
+attestations need exactly this one row:
+
+| Identity OID | Scheme | Attestation schema | Class |
+|:----------:|--------|:----------------:|-------|
+| `0x0000F001` | `XMSS-SHAKE256_20_256` (crypto OID `0x12`) | `stardome_attestation_schema_v2.0.1` | software signer |
+
+The crypto parameters resolve through the scheme registry (`crypto_oid`):
+the identity OID `0xF001` selects the single-tree `XMSS-SHAKE256_20_256`
+parameter set (`0x12`). Hardware classes for completeness: `0x00000005`
+(XMSSMT-SHA2_40/8_256, schemas 1.0.0_x) and `0x0000002d` (reserved, schema
+2.0.0). A verifier MUST enforce the (identity OID × schema) pairing — a
+software-class key signs only 2.0.1 and vice versa.
+
 ## SEAD authorization validity (`not_before` / `not_after`)
 
 In the SEAD DAG schemas (`sead_v1.1.2` / `v1.2.0` / `v1.3.0`) the `not_before` / `not_after`
