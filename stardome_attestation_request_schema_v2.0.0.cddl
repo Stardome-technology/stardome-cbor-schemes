@@ -15,6 +15,7 @@ stardome_attestation_request = {
   5: [+ bstr ],	; source_data
   6: bstr,    	; stardome_chain_data
   7: bool,      ; with_leaf_hashes
+  ? 8: uint,    ; host_time_claim
 }
 
 ; where:
@@ -33,3 +34,8 @@ stardome_attestation_request = {
 ; stardome_chain_data is the hash linkage to another Stardome attestation (Stardome Chain of Custody)
 ;
 ; with_leaf_hashes is a boolean value to request to include leaf hashes within the Stardome attestation response.
+;
+; host_time_claim is the optional host-declared timestamp (raw uint, Unix seconds) submitted for the
+; module to cross-check against its own RTC; the module does not alter the claimed value and echoes it
+; verbatim as the host_time_claim (key 17) of the Stardome attestation when present; its absence means
+; the integrator supplies no host time (the no_host_time case).
