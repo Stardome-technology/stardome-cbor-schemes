@@ -24,6 +24,7 @@ stardome_<..>_scheme_vXX.XX.XX_Y
 | sead_v1.1.2 | 1.1.2 | ALL |
 | sead_v1.2.0 | 1.2.0 | ALL |
 | sead_v1.3.0 | 1.3.0 | ALL |
+| sead_v1.4.0 | 1.4.0 | ALL |
 | stardome-merkle-tree | n/a | ALL |
 | stardome_attestation_request_schema_v2.0.0 | 2.0.0 | ALL |
 | stardome_attestation_scheme_v1.0.0_0 | 1.0.0 | SGE |
