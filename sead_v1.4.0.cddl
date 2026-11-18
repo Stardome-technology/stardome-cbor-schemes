@@ -259,6 +259,9 @@ edge_equivocation_proof_body = {
 }
 
 ; ---------- Optional Storage Receipts ----------
+; The body is envelope-signed: there is no in-body signature field (the former
+; key 7 `sig` was removed in v1.4.0 — redundant with the envelope signature
+; and never populated by deployed code).
 
 storage_receipt_body = {
   1: org_id,
